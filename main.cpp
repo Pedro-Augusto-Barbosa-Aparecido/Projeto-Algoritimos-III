@@ -48,8 +48,6 @@ int main() {
     cout << "\nEntre com o numero do supermercado:  ";
     cin >> localSaida;
 
-    initMatrix(casas);
-
     for (int i = 0; i < nCompra; i++) {
         cout << endl;
         cout << "Entre com o numero da compra: ";
@@ -66,6 +64,20 @@ int main() {
         entregadores[i].caminhoParaEntregas = new int[100];
         entregadores[i].comprasParaEntrega = new int[100];
 
+    }
+
+    initMatrix(casas);
+
+    for (int i = 1; i <= nCasas; i++) {
+        for (int j = 1; j <= nCasas; j++) {
+            if (i == j) {
+                casas[i][j] = 0;
+            } else {
+                cout << "Custo cidade " << i << " para " << j << endl;
+                cin >> casas[i][j];
+                casas[j][i] = casas[i][j];
+            }
+        }
     }
 
     return 0;
