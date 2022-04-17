@@ -3,12 +3,14 @@
 
 using namespace std;
 
+// Struct para compras
 struct Compra {
     int id;
     int peso;
 
 };
 
+// Struct para entregadores
 struct Entregadores {
     int *comprasParaEntrega;
     int *caminhoParaEntregas;
@@ -29,6 +31,7 @@ void initMatrix(int mat[100][100]) {
 
 }
 
+// busca binária
 int buscaIDS (int compras[], int ini, int tam, int &id) {
     int meio = (ini + tam) / 2;
     if (ini <= tam) {
@@ -45,26 +48,13 @@ int buscaIDS (int compras[], int ini, int tam, int &id) {
 
 }
 
-void updateComprasLista (Compra compras[], int &qtdCompras, int idsJaUtilizados[], int &qtdIds, Compra compraListaParaUpdate[]) {
-    int j = 0;
-    for (int i = 0; i < qtdCompras; i++) {
-        int compra = buscaIDS(idsJaUtilizados, 0, qtdIds, compras[i].id);
-
-        if (compra == -1) {
-            compraListaParaUpdate[j] = compras[i];
-            ++j;
-
-        }
-
-    }
-
-}
-
 // seleciona as compras para cada entregador
 int manageComprasToEntregadores (Compra compras[],
-                                  int &qtdCompras,
+                                  int qtdCompras,
                                   Entregadores entregador,
-                                  int &capacidadeMax) {
+                                  int capacidadeMax,
+                                  int ignoreIndex[],
+                                  int &tamIgnoreIndex) {
     int pd[100][100];
     int caminhoComprasSelecionadas[100][100];
 
@@ -85,7 +75,7 @@ int manageComprasToEntregadores (Compra compras[],
             else
                 pega = 0;
 
-            if (pega > naoPega) {
+            if ((pega > naoPega) /*&& (buscaIDS(ignoreIndex, 0, (tamIgnoreIndex - 1), compras[i].id) != -1)*/) {
                 pd[i][j] = pega;
                 caminhoComprasSelecionadas[i][j] = 1;
 
@@ -101,12 +91,15 @@ int manageComprasToEntregadores (Compra compras[],
 
     int i = 0, j = capacidadeMax;
     int posCompraEntregador = 0;
+    int posIgnore = tamIgnoreIndex;
 
     while (i != qtdCompras) {
         if(caminhoComprasSelecionadas[i][j] == 0)
             i++;
         else {
             entregador.comprasParaEntrega[posCompraEntregador] = compras[i].id;
+            ignoreIndex[posIgnore] = compras[i].id;
+            posIgnore++;
             posCompraEntregador++;
             j-= compras[i].peso;
             i++;
@@ -114,24 +107,26 @@ int manageComprasToEntregadores (Compra compras[],
         }
     }
 
+    tamIgnoreIndex = posIgnore + 1;
+
     return posCompraEntregador;
 
 }
 
 int main() {
-    int nCompra = 0;
-    int nEntregadores = 0;
-    int nCasas = 0;
-    int localSaida = 0;
+    int nCompra = 0; // número de compras
+    int nEntregadores = 0; // número de entregadores
+    int nCasas = 0; // números de casas
+    int localSaida = 0; // local que será o supermercado e saída do entregador
 
-    int casas[100][100];
+    int casas[100][100]; // matrix para armazenar o tempo do caminho para cada cidade/casa
 
-    int capacidadeEntregador = 0;
+    int capacidadeEntregador = 0; // capacidade de cada entregador
     
-    Compra compras[100];
-    Compra comprasAux[100];
-    Entregadores entregadores[100];
+    Compra compras[100]; // vetor para compra
+    Entregadores entregadores[100]; // vetor para entregador
 
+    // Pega as variaveis de tamanho dos vetores e capacidade dos entregadores
     cout << "Entre com o numero de compras: ";
     cin >> nCompra;
     cout << "\nEntre com o numero de entregadores: ";
@@ -143,6 +138,7 @@ int main() {
 //    cout << "\nEntre com o numero do supermercado:  ";
 //    cin >> localSaida;
 
+    // Pega o ID e Peso de cada compra
     for (int i = 0; i < (nCompra - 1); i++) {
         cout << endl;
         cout << "Entre com o numero da compra: ";
@@ -152,17 +148,20 @@ int main() {
 
     }
 
+    // Pega a distância de cada entregador ao supermercado
     for (int i = 0; i < nEntregadores; i++) {
         cout << "\nEntre com a distancia do entregador " << (i + 1) << " esta da loja: ";
         cin >> entregadores[i].distanciaDaLoja;
 
+        // Cria os vetores para compras e caminhos de cada entregador
         entregadores[i].caminhoParaEntregas = new int[10];
         entregadores[i].comprasParaEntrega = new int[10];
 
     }
 
+    // Inicia Matrix de casas
 //    initMatrix(casas);
-//
+    // Preenche a matrix de casas
 //    for (int i = 1; i <= nCasas; i++) {
 //        for (int j = 1; j <= nCasas; j++) {
 //            if (i == j) {
@@ -175,26 +174,17 @@ int main() {
 //        }
 //    }
 
-    int qtdCompra = nCompra;
+    // Variáveis auxiliares para separação das compras
     int idsSelecionados[100];
-    int ini = 0;
-    for (int i = 0; i < nCompra; i++)
-        comprasAux[i] = compras[i];
+    int tamIgnore = 0;
 
+    // Divide as compras entre os entregadores
     for (int i = 0; i < nEntregadores; i++) {
-        int qtdCompraSelecionada = manageComprasToEntregadores(comprasAux, qtdCompra, entregadores[i], capacidadeEntregador);
-        for (int j = ini; j < (qtdCompraSelecionada + ini); j++) {
-            idsSelecionados[j] = entregadores[i].comprasParaEntrega[j];
-
-        }
-
-        ini += qtdCompraSelecionada;
-        qtdCompra = (nCompra - qtdCompraSelecionada);
-
-        updateComprasLista(compras, nCompra, idsSelecionados, ini, comprasAux);
+        manageComprasToEntregadores(compras, nCompra, entregadores[i], capacidadeEntregador, idsSelecionados, tamIgnore);
 
     }
 
+    // Mostra as compras de cada entregador ( SOMENTE TESTE )
     int c = 0;
     for (int i = 0; i < nEntregadores; i++) {
         do {
@@ -205,6 +195,7 @@ int main() {
 
     }
 
+    // Delete os vetores de cada entregador
     for (int i = 0; i < nEntregadores; i++) {
         delete [] entregadores[i].comprasParaEntrega;
         delete [] entregadores[i].caminhoParaEntregas;
