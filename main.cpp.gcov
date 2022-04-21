@@ -1,0 +1,343 @@
+        -:    0:Source:main.cpp
+        -:    0:Graph:main.gcno
+        -:    0:Data:-
+        -:    0:Runs:0
+        -:    0:Programs:0
+        -:    1:#include <iostream>
+        -:    2:#include <list>
+        -:    3:#include <climits>
+        -:    4:#include <cmath>
+        -:    5:using namespace std;
+        -:    6:// Struct para compras
+        -:    7:struct Compra {
+        -:    8:    int id;
+        -:    9:    int peso;
+        -:   10:    bool selected;
+        -:   11:};
+        -:   12:// Struct para entregadores
+        -:   13:struct Entregadores {
+        -:   14:    int id;
+        -:   15:    int *comprasParaEntrega;
+        -:   16:    int *caminhoParaEntregas;
+        -:   17:    int distanciaOrigem;
+        -:   18:    int numeroDeCompras;
+        -:   19:    int tempo;
+        -:   20:};
+        -:   21:// Struct para o algoritmo Dijkstra
+    #####:   22:struct no{
+        -:   23:    int v;          // Vertice adjacente
+        -:   24:    float p;        // Peso da aresta
+        -:   25:};
+        -:   26:// Verifica se todas as compras foram selecionadas
+    #####:   27:bool verificaCompras(Compra compras[], int &qtdCompra) {
+    #####:   28:    for (int i = 0; i < qtdCompra; i++)
+    #####:   29:        if (!compras[i].selected)
+    #####:   30:            return true;
+    #####:   31:    return false;
+        -:   32:}
+        -:   33:// Verifica o melhor caminho
+    #####:   34:void dijkstra(list<no>adj[], int nVertices, int start, int end, Entregadores &entregador, int &c)
+        -:   35:{
+        -:   36:    // Declaração de variáveis
+    #####:   37:    int u = 0;
+    #####:   38:    int v = 0;
+    #####:   39:    list<no>::iterator p;
+    #####:   40:    int destino = 0;
+    #####:   41:    float weight = 0;
+    #####:   42:    float dist = 0;
+    #####:   43:    bool intree[nVertices];
+    #####:   44:    float distance[nVertices];
+    #####:   45:    int parent[nVertices];
+        -:   46:    // Inicializa os valores
+    #####:   47:    for(u = 0; u < nVertices; u++)
+        -:   48:    {
+    #####:   49:        intree[u] = false;
+    #####:   50:        distance[u] = INT_MAX;
+    #####:   51:        parent[u] = -1;
+        -:   52:    }
+    #####:   53:    distance[start] = 0;
+    #####:   54:    v = start;
+        -:   55:    // Verifica o melhor caminho
+    #####:   56:    while(intree[v] == false)
+        -:   57:    {
+    #####:   58:        intree[v] = true;
+    #####:   59:        for(p = adj[v].begin(); p != adj[v].end(); p++)
+        -:   60:        {
+    #####:   61:            destino = p->v;
+    #####:   62:            weight = p->p;
+    #####:   63:            if(distance[destino] > distance[v] + weight)
+        -:   64:            {
+    #####:   65:                distance[destino] = distance[v] + weight;
+    #####:   66:                parent[destino] = v;
+        -:   67:            }
+        -:   68:        }
+    #####:   69:        v = 0;
+    #####:   70:        dist = INT_MAX;
+    #####:   71:        for(u = 0; u < nVertices; u++)
+        -:   72:        {
+    #####:   73:            if(intree[u] == false && dist > distance[u])
+        -:   74:            {
+    #####:   75:                dist = distance[u];
+    #####:   76:                v = u;
+        -:   77:            }
+        -:   78:        }
+        -:   79:    }
+        -:   80:    // Variáveis auxiliares
+    #####:   81:    list<int> pilha;
+    #####:   82:    int cont = end;
+    #####:   83:    int pai = 0;
+    #####:   84:    pilha.push_front(end);
+    #####:   85:    pai = parent[end];
+    #####:   86:    for (int i = 0; i < nVertices; i++) {
+    #####:   87:        pilha.push_front(pai);
+    #####:   88:        pai = parent[pai];
+    #####:   89:        if (pai == -1) break;
+        -:   90:    }
+        -:   91:    // Manda o melhor caminho para o entregador
+    #####:   92:    for(list<int>::iterator p = pilha.begin(); p != pilha.end(); p++)
+        -:   93:    {
+    #####:   94:        entregador.caminhoParaEntregas[c] = *p + 1;
+    #####:   95:        c++;
+        -:   96:    }
+        -:   97:    // Manda o tempo do melhor caminho para o entregador
+    #####:   98:    entregador.tempo += distance[end];
+    #####:   99:}
+        -:  100:// Cria as arestas para serem usadas na função dijkstra
+    #####:  101:void cria_aresta(list<no>adj[], int u, int v, float p, int orientado)
+        -:  102:{
+        -:  103:    // Var aux para inserir arestas em adj
+        -:  104:    no aux;
+    #####:  105:    aux.v = v;
+    #####:  106:    aux.p = p;
+    #####:  107:    adj[u].push_back(aux);
+    #####:  108:    if(orientado == 0)
+        -:  109:    {
+    #####:  110:        aux.v = u;
+    #####:  111:        adj[v].push_back(aux);
+        -:  112:    }
+    #####:  113:}
+        -:  114:// Seleciona as compras para cada entregador
+    #####:  115:int selecionaComprasParaEntregadores (Compra compras[], int qtdCompras, Entregadores entregador, int capacidadeMax) {
+        -:  116:    // Declaração de variáveis
+        -:  117:    int pd[100][100];
+        -:  118:    int caminhoComprasSelecionadas[100][100];
+        -:  119:    // Inicializa os valores como 0
+    #####:  120:    for (int j = 0; j < capacidadeMax; j++)
+    #####:  121:        pd[qtdCompras][j] = 0;
+    #####:  122:    for (int i = 0; i < qtdCompras; i++)
+    #####:  123:        pd[i][0] = 0;
+        -:  124:    // Seleciona por método guloso as compras
+    #####:  125:    for (int i = (qtdCompras - 1); i >= 0; i--) {
+    #####:  126:        for (int j = 1; j <= capacidadeMax; j++) {
+        -:  127:            int pega, naoPega;
+    #####:  128:            naoPega = pd[i + 1][j];
+    #####:  129:            if ((j >= compras[i].peso) && !(compras[i].selected))
+    #####:  130:                pega = pd[i + 1][j - compras[i].peso] + compras[i].id;
+        -:  131:            else
+    #####:  132:                pega = 0;
+    #####:  133:            if ((pega > naoPega) /*&& (buscaIDS(ignoreIndex, 0, (tamIgnoreIndex - 1), compras[i].id) != -1)*/) {
+    #####:  134:                pd[i][j] = pega;
+    #####:  135:                caminhoComprasSelecionadas[i][j] = 1;
+        -:  136:            } else {
+    #####:  137:                pd[i][j] = naoPega;
+    #####:  138:                caminhoComprasSelecionadas[i][j] = 0;
+        -:  139:            }
+        -:  140:        }
+        -:  141:    }
+        -:  142:    // Variáveis auxiliares
+    #####:  143:    int i = 0;
+    #####:  144:    int j = capacidadeMax;
+    #####:  145:    int posCompraEntregador = 0;
+    #####:  146:    int nCompras = 0;
+        -:  147:    // Manda as compras para o entregador
+    #####:  148:    while (i != qtdCompras) {
+    #####:  149:        if(caminhoComprasSelecionadas[i][j] == 0)
+    #####:  150:            i++;
+        -:  151:        else {
+    #####:  152:            entregador.comprasParaEntrega[posCompraEntregador] = compras[i].id;
+    #####:  153:            nCompras++;
+    #####:  154:            posCompraEntregador++;
+    #####:  155:            compras[i].selected = true;
+    #####:  156:            j-= compras[i].peso;
+    #####:  157:            i++;
+        -:  158:        }
+        -:  159:    }
+    #####:  160:    return nCompras;
+        -:  161:}
+        -:  162://Função que organiza a Struct pela distância até o supermercado
+    #####:  163:void quickSort(Entregadores vetor[], int i, int j)
+        -:  164:{
+        -:  165:    Entregadores trab, pivo;
+    #####:  166:    int esq = i;
+    #####:  167:    int dir = j;
+    #####:  168:    pivo.distanciaOrigem = vetor[(int)round((esq + dir) / 2.0)].distanciaOrigem;
+    #####:  169:    do
+        -:  170:    {
+    #####:  171:        while (vetor[esq].distanciaOrigem < pivo.distanciaOrigem)
+    #####:  172:            esq++;
+    #####:  173:        while (vetor[dir].distanciaOrigem > pivo.distanciaOrigem)
+    #####:  174:            dir--;
+    #####:  175:        if (esq <= dir)
+        -:  176:        {
+    #####:  177:            trab = vetor[esq];
+    #####:  178:            vetor[esq] = vetor[dir];
+    #####:  179:            vetor[dir] = trab;
+    #####:  180:            vetor[dir].id = trab.id;
+    #####:  181:            esq++;
+    #####:  182:            dir--;
+        -:  183:        }
+        -:  184:    }
+        -:  185:    while (esq <= dir);
+    #####:  186:    if (dir - i >= 0)
+    #####:  187:        quickSort(vetor, i, dir);
+    #####:  188:    if (j - esq >= 0)
+    #####:  189:        quickSort(vetor, esq, j);
+    #####:  190:}
+    #####:  191:int main() {
+        -:  192:    // ----- Declaração das variáveis -----
+    #####:  193:    bool more = true;                         // Se restou alguma compra sem ser entregue
+    #####:  194:    int nCompra = 0;                          // número de compras
+    #####:  195:    int nEntregadores = 0;                    // número de entregadores
+    #####:  196:    int cEntregador = 0;                      // capacidade de cada entregador
+    #####:  197:    int nCasas = 0;                           // números de casas
+    #####:  198:    int localSaida = 0;                       // local que será a saída do entregador
+    #####:  199:    int vOrigem = 0;                          // vertice de origem
+    #####:  200:    int vDestino = 0;                         // vertice de destino
+    #####:  201:    float pAresta = 0;                        // Peso da aresta
+    #####:  202:    Compra *compras = NULL;                // vetor para compra
+    #####:  203:    Entregadores *entregadores = NULL;     // vetor para entregador
+        -:  204:    // ------ Leitura dos dados ------
+        -:  205:    // Lê o número de compras
+    #####:  206:    cout << "Entre com o numero de compras: ";
+    #####:  207:    cin >> nCompra;
+    #####:  208:    compras = new Compra[nCompra];
+        -:  209:    // Lê o número de entregadores
+    #####:  210:    cout << "\nEntre com o numero de entregadores: ";
+    #####:  211:    cin >> nEntregadores;
+    #####:  212:    entregadores = new Entregadores[nEntregadores];
+        -:  213:    // Lê a capacidade dos entregadores
+    #####:  214:    cout << "\nEntre com a capacidade maxima dos entregadores:  ";
+    #####:  215:    cin >> cEntregador;
+        -:  216:    // Lê o número de casas
+    #####:  217:    cout << "\nEntre com o numero de casas, incluindo o supermercado:  ";
+    #####:  218:    cin >> nCasas;
+    #####:  219:    list<no> adj[nCasas + 1];
+        -:  220:    // Lê o ID da casa que o entregador sai
+    #####:  221:    cout << "\nEntre com o local de saída:  ";
+    #####:  222:    cin >> localSaida;
+        -:  223:    // Lê o ID e Peso de cada compra
+    #####:  224:    for (int i = 0; i < nCompra; i++) {
+    #####:  225:        cout << "\nEntre com o ID da compra: ";
+    #####:  226:        cin >> compras[i].id;
+    #####:  227:        cout << "Entre com o peso da compra: ";
+    #####:  228:        cin >> compras[i].peso;
+    #####:  229:        compras[i].selected = false;
+        -:  230:    }
+        -:  231:    // Lê a distância de cada entregador ao supermercado
+    #####:  232:    for (int i = 0; i < nEntregadores; i++) {
+    #####:  233:        cout << "\nEntre com a distancia que o entregador " << (i + 1) << " esta da loja: ";
+    #####:  234:        cin >> entregadores[i].distanciaOrigem;
+        -:  235:        // Cria os vetores para compras e caminhos de cada entregador
+    #####:  236:        entregadores[i].id = i + 1;
+    #####:  237:        entregadores[i].caminhoParaEntregas = new int[(2 * nCasas)];
+    #####:  238:        entregadores[i].comprasParaEntrega = new int[nCompra];
+    #####:  239:        entregadores[i].numeroDeCompras = 0;
+    #####:  240:        entregadores[i].tempo = 0;
+        -:  241:        // Inicializa os vetores com 0
+    #####:  242:        for (int j = 0; j < nCompra; j++)
+    #####:  243:            entregadores[i].comprasParaEntrega[j] = 0;
+    #####:  244:        for (int j = 0; j < (2 * nCasas); j++)
+    #####:  245:            entregadores[i].caminhoParaEntregas[j] = 0;
+        -:  246:    }
+        -:  247:    // Lê o a casa de origem, a casa de destino e o peso da aresta - dijkstra
+    #####:  248:    cout << "\nEntre com o id da casa de origem, destino e peso: " << endl;
+    #####:  249:    cin >> vOrigem >> vDestino >> pAresta;
+    #####:  250:    while ((vOrigem != -1) && (vDestino != -1) && (pAresta != -1)) {
+        -:  251:        //Cria uma aresta com os dados lidos
+    #####:  252:        cria_aresta(adj, (vOrigem - 1), (vDestino - 1), pAresta, 0);
+    #####:  253:        cin >> vOrigem >> vDestino >> pAresta;
+        -:  254:    }
+        -:  255:    // Faz a verificação e exibição do melhor caminho, tempo e compras de cada entregador
+    #####:  256:    do{
+        -:  257:        //Organiza os entregadores pela distância do supermercado
+    #####:  258:        quickSort(entregadores, 0, (nEntregadores - 1));
+        -:  259:        // Divide as compras entre os entregadores
+    #####:  260:        for (int i = 0; i < nEntregadores; i++) {
+    #####:  261:            entregadores[i].numeroDeCompras = selecionaComprasParaEntregadores(compras, nCompra, entregadores[i],cEntregador);
+        -:  262:        }
+        -:  263:        // Variáveis auxiliares
+    #####:  264:        int saida = localSaida;
+    #####:  265:        int cont = 0;
+        -:  266:        // Verifica o tempo para ir ao supermercado e até a última entrega
+    #####:  267:        for (int i = 0; i < nEntregadores; i++) {
+    #####:  268:            if(entregadores[i].comprasParaEntrega[0] != 0)
+    #####:  269:                for (int j = 0; j < entregadores[i].numeroDeCompras; ++j) {
+        -:  270:                    // Chama a função dijkstra com o ponto de partida e o destino
+    #####:  271:                    dijkstra(adj, nCasas, (saida - 1), entregadores[i].comprasParaEntrega[j] - 1, entregadores[i], cont);
+    #####:  272:                    saida = entregadores[i].comprasParaEntrega[j];
+        -:  273:                }
+    #####:  274:            cont = 0;
+    #####:  275:            saida = localSaida;
+        -:  276:        }
+        -:  277:        //Variáveis auxiliares
+    #####:  278:        int z = 0;
+    #####:  279:        int aux = 0;
+        -:  280:        // Exibe os dados
+    #####:  281:        for (int i = 0; i < nEntregadores; ++i) {
+    #####:  282:            if(entregadores[i].comprasParaEntrega[0] != 0) {
+        -:  283:                // Exibe o tempo gasto
+    #####:  284:                cout << "Tempo que o entregador " << entregadores[i].id << " gastou: " << entregadores[i].tempo + entregadores[i].distanciaOrigem << endl;
+        -:  285:                // Exibe o caminho percorrido
+    #####:  286:                cout << "Caminho que o entregador " << entregadores[i].id << " percorreu: ";
+    #####:  287:                for (z = 0; z < (2 * nCasas); z++) {
+    #####:  288:                    if (entregadores[i].caminhoParaEntregas[z] == 0)
+    #####:  289:                        break;
+    #####:  290:                    if(entregadores[i].caminhoParaEntregas[z] != entregadores[i].caminhoParaEntregas[z + 1]){
+    #####:  291:                        cout << entregadores[i].caminhoParaEntregas[z] << " ";
+    #####:  292:                        aux = entregadores[i].caminhoParaEntregas[z];
+        -:  293:                    }
+        -:  294:                    else {
+    #####:  295:                        cout << entregadores[i].caminhoParaEntregas[z + 1] << " ";
+    #####:  296:                        aux = entregadores[i].caminhoParaEntregas[z + 1];
+    #####:  297:                        z++;
+        -:  298:                    }
+        -:  299:                }
+        -:  300:                // Exibe as compras que o entregador entregou
+    #####:  301:                cout << "\nCompras entregues pelo entregador " << entregadores[i].id << " : ";
+    #####:  302:                for (int j = 0; j < entregadores[i].numeroDeCompras; ++j) {
+    #####:  303:                    cout << entregadores[i].comprasParaEntrega[j] << " ";
+        -:  304:                }
+        -:  305:                // Seta o novo tempo de ir de volta para o supermercado baseado no último ponto de entrega
+    #####:  306:                for (list<no>::iterator p = adj[aux - 1].begin(); p != adj[aux - 1].end(); p++) {
+    #####:  307:                    if(p->v == (localSaida - 1)){
+    #####:  308:                        entregadores[i].distanciaOrigem = p->p;
+    #####:  309:                        break;
+        -:  310:                    }
+        -:  311:                }
+    #####:  312:                cout << "\n===========================================" << endl;
+        -:  313:            }
+        -:  314:        }
+        -:  315:        // Verifica se restou alguma compra sem ser entregue
+    #####:  316:        more = verificaCompras(compras, nCompra);
+        -:  317:        // Limpa as variáveis para a inserção das novas compras caso tenho sobrado alguma
+    #####:  318:        if(more)
+    #####:  319:            for (int i = 0; i < nEntregadores; ++i) {
+    #####:  320:                for (int j = 0; j < z; ++j) {
+    #####:  321:                    entregadores[i].caminhoParaEntregas[j] = 0;
+        -:  322:                }
+    #####:  323:                for (int j = 0; j < entregadores[i].numeroDeCompras; ++j) {
+    #####:  324:                    entregadores[i].comprasParaEntrega[j] = 0;
+        -:  325:                }
+    #####:  326:                entregadores[i].numeroDeCompras = 0;
+    #####:  327:                entregadores[i].tempo = 0;
+        -:  328:            }
+        -:  329:    }while(more);
+        -:  330:    // Limpa a memória
+    #####:  331:    for (int i = 0; i < nEntregadores; i++) {
+    #####:  332:        delete [] entregadores[i].comprasParaEntrega;
+    #####:  333:        delete [] entregadores[i].caminhoParaEntregas;
+        -:  334:    }
+    #####:  335:    delete[] compras;
+    #####:  336:    delete[] entregadores;
+    #####:  337:    return 0;
+    #####:  338:}/*EOF*/

@@ -1,0 +1,421 @@
+        -:    0:Source:c:\program files (x86)\falcon\mingw\bin\../lib/gcc/mingw32/4.4.1/include/c++/bits/list.tcc
+        -:    0:Graph:main.gcno
+        -:    0:Data:-
+        -:    0:Runs:0
+        -:    0:Programs:0
+        -:    1:// List implementation (out of line) -*- C++ -*-
+        -:    2:
+        -:    3:// Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+        -:    4:// Free Software Foundation, Inc.
+        -:    5://
+        -:    6:// This file is part of the GNU ISO C++ Library.  This library is free
+        -:    7:// software; you can redistribute it and/or modify it under the
+        -:    8:// terms of the GNU General Public License as published by the
+        -:    9:// Free Software Foundation; either version 3, or (at your option)
+        -:   10:// any later version.
+        -:   11:
+        -:   12:// This library is distributed in the hope that it will be useful,
+        -:   13:// but WITHOUT ANY WARRANTY; without even the implied warranty of
+        -:   14:// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        -:   15:// GNU General Public License for more details.
+        -:   16:
+        -:   17:// Under Section 7 of GPL version 3, you are granted additional
+        -:   18:// permissions described in the GCC Runtime Library Exception, version
+        -:   19:// 3.1, as published by the Free Software Foundation.
+        -:   20:
+        -:   21:// You should have received a copy of the GNU General Public License and
+        -:   22:// a copy of the GCC Runtime Library Exception along with this program;
+        -:   23:// see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+        -:   24:// <http://www.gnu.org/licenses/>.
+        -:   25:
+        -:   26:/*
+        -:   27: *
+        -:   28: * Copyright (c) 1994
+        -:   29: * Hewlett-Packard Company
+        -:   30: *
+        -:   31: * Permission to use, copy, modify, distribute and sell this software
+        -:   32: * and its documentation for any purpose is hereby granted without fee,
+        -:   33: * provided that the above copyright notice appear in all copies and
+        -:   34: * that both that copyright notice and this permission notice appear
+        -:   35: * in supporting documentation.  Hewlett-Packard Company makes no
+        -:   36: * representations about the suitability of this software for any
+        -:   37: * purpose.  It is provided "as is" without express or implied warranty.
+        -:   38: *
+        -:   39: *
+        -:   40: * Copyright (c) 1996,1997
+        -:   41: * Silicon Graphics Computer Systems, Inc.
+        -:   42: *
+        -:   43: * Permission to use, copy, modify, distribute and sell this software
+        -:   44: * and its documentation for any purpose is hereby granted without fee,
+        -:   45: * provided that the above copyright notice appear in all copies and
+        -:   46: * that both that copyright notice and this permission notice appear
+        -:   47: * in supporting documentation.  Silicon Graphics makes no
+        -:   48: * representations about the suitability of this software for any
+        -:   49: * purpose.  It is provided "as is" without express or implied warranty.
+        -:   50: */
+        -:   51:
+        -:   52:/** @file list.tcc
+        -:   53: *  This is an internal header file, included by other library headers.
+        -:   54: *  You should not attempt to use it directly.
+        -:   55: */
+        -:   56:
+        -:   57:#ifndef _LIST_TCC
+        -:   58:#define _LIST_TCC 1
+        -:   59:
+        -:   60:_GLIBCXX_BEGIN_NESTED_NAMESPACE(std, _GLIBCXX_STD_D)
+        -:   61:
+        -:   62:  template<typename _Tp, typename _Alloc>
+        -:   63:    void
+    #####:   64:    _List_base<_Tp, _Alloc>::
+        -:   65:    _M_clear()
+        -:   66:    {
+        -:   67:      typedef _List_node<_Tp>  _Node;
+    #####:   68:      _Node* __cur = static_cast<_Node*>(this->_M_impl._M_node._M_next);
+    #####:   69:      while (__cur != &this->_M_impl._M_node)
+        -:   70:	{
+    #####:   71:	  _Node* __tmp = __cur;
+    #####:   72:	  __cur = static_cast<_Node*>(__cur->_M_next);
+        -:   73:#ifdef __GXX_EXPERIMENTAL_CXX0X__
+        -:   74:	  _M_get_Node_allocator().destroy(__tmp);
+        -:   75:#else
+    #####:   76:	  _M_get_Tp_allocator().destroy(&__tmp->_M_data);
+        -:   77:#endif
+    #####:   78:	  _M_put_node(__tmp);
+        -:   79:	}
+    #####:   80:    }
+        -:   81:
+        -:   82:#ifdef __GXX_EXPERIMENTAL_CXX0X__
+        -:   83:  template<typename _Tp, typename _Alloc>
+        -:   84:    template<typename... _Args>
+        -:   85:      typename list<_Tp, _Alloc>::iterator
+        -:   86:      list<_Tp, _Alloc>::
+        -:   87:      emplace(iterator __position, _Args&&... __args)
+        -:   88:      {
+        -:   89:	_Node* __tmp = _M_create_node(std::forward<_Args>(__args)...);
+        -:   90:	__tmp->hook(__position._M_node);
+        -:   91:	return iterator(__tmp);
+        -:   92:      }
+        -:   93:#endif
+        -:   94:
+        -:   95:  template<typename _Tp, typename _Alloc>
+        -:   96:    typename list<_Tp, _Alloc>::iterator
+        -:   97:    list<_Tp, _Alloc>::
+        -:   98:    insert(iterator __position, const value_type& __x)
+        -:   99:    {
+        -:  100:      _Node* __tmp = _M_create_node(__x);
+        -:  101:      __tmp->hook(__position._M_node);
+        -:  102:      return iterator(__tmp);
+        -:  103:    }
+        -:  104:
+        -:  105:  template<typename _Tp, typename _Alloc>
+        -:  106:    typename list<_Tp, _Alloc>::iterator
+        -:  107:    list<_Tp, _Alloc>::
+        -:  108:    erase(iterator __position)
+        -:  109:    {
+        -:  110:      iterator __ret = iterator(__position._M_node->_M_next);
+        -:  111:      _M_erase(__position);
+        -:  112:      return __ret;
+        -:  113:    }
+        -:  114:
+        -:  115:  template<typename _Tp, typename _Alloc>
+        -:  116:    void
+        -:  117:    list<_Tp, _Alloc>::
+        -:  118:    resize(size_type __new_size, value_type __x)
+        -:  119:    {
+        -:  120:      iterator __i = begin();
+        -:  121:      size_type __len = 0;
+        -:  122:      for (; __i != end() && __len < __new_size; ++__i, ++__len)
+        -:  123:        ;
+        -:  124:      if (__len == __new_size)
+        -:  125:        erase(__i, end());
+        -:  126:      else                          // __i == end()
+        -:  127:        insert(end(), __new_size - __len, __x);
+        -:  128:    }
+        -:  129:
+        -:  130:  template<typename _Tp, typename _Alloc>
+        -:  131:    list<_Tp, _Alloc>&
+        -:  132:    list<_Tp, _Alloc>::
+        -:  133:    operator=(const list& __x)
+        -:  134:    {
+        -:  135:      if (this != &__x)
+        -:  136:	{
+        -:  137:	  iterator __first1 = begin();
+        -:  138:	  iterator __last1 = end();
+        -:  139:	  const_iterator __first2 = __x.begin();
+        -:  140:	  const_iterator __last2 = __x.end();
+        -:  141:	  for (; __first1 != __last1 && __first2 != __last2;
+        -:  142:	       ++__first1, ++__first2)
+        -:  143:	    *__first1 = *__first2;
+        -:  144:	  if (__first2 == __last2)
+        -:  145:	    erase(__first1, __last1);
+        -:  146:	  else
+        -:  147:	    insert(__last1, __first2, __last2);
+        -:  148:	}
+        -:  149:      return *this;
+        -:  150:    }
+        -:  151:
+        -:  152:  template<typename _Tp, typename _Alloc>
+        -:  153:    void
+        -:  154:    list<_Tp, _Alloc>::
+        -:  155:    _M_fill_assign(size_type __n, const value_type& __val)
+        -:  156:    {
+        -:  157:      iterator __i = begin();
+        -:  158:      for (; __i != end() && __n > 0; ++__i, --__n)
+        -:  159:        *__i = __val;
+        -:  160:      if (__n > 0)
+        -:  161:        insert(end(), __n, __val);
+        -:  162:      else
+        -:  163:        erase(__i, end());
+        -:  164:    }
+        -:  165:
+        -:  166:  template<typename _Tp, typename _Alloc>
+        -:  167:    template <typename _InputIterator>
+        -:  168:      void
+        -:  169:      list<_Tp, _Alloc>::
+        -:  170:      _M_assign_dispatch(_InputIterator __first2, _InputIterator __last2,
+        -:  171:			 __false_type)
+        -:  172:      {
+        -:  173:        iterator __first1 = begin();
+        -:  174:        iterator __last1 = end();
+        -:  175:        for (; __first1 != __last1 && __first2 != __last2;
+        -:  176:	     ++__first1, ++__first2)
+        -:  177:          *__first1 = *__first2;
+        -:  178:        if (__first2 == __last2)
+        -:  179:          erase(__first1, __last1);
+        -:  180:        else
+        -:  181:          insert(__last1, __first2, __last2);
+        -:  182:      }
+        -:  183:
+        -:  184:  template<typename _Tp, typename _Alloc>
+        -:  185:    void
+        -:  186:    list<_Tp, _Alloc>::
+        -:  187:    remove(const value_type& __value)
+        -:  188:    {
+        -:  189:      iterator __first = begin();
+        -:  190:      iterator __last = end();
+        -:  191:      iterator __extra = __last;
+        -:  192:      while (__first != __last)
+        -:  193:	{
+        -:  194:	  iterator __next = __first;
+        -:  195:	  ++__next;
+        -:  196:	  if (*__first == __value)
+        -:  197:	    {
+        -:  198:	      // _GLIBCXX_RESOLVE_LIB_DEFECTS
+        -:  199:	      // 526. Is it undefined if a function in the standard changes
+        -:  200:	      // in parameters?
+        -:  201:	      if (&*__first != &__value)
+        -:  202:		_M_erase(__first);
+        -:  203:	      else
+        -:  204:		__extra = __first;
+        -:  205:	    }
+        -:  206:	  __first = __next;
+        -:  207:	}
+        -:  208:      if (__extra != __last)
+        -:  209:	_M_erase(__extra);
+        -:  210:    }
+        -:  211:
+        -:  212:  template<typename _Tp, typename _Alloc>
+        -:  213:    void
+        -:  214:    list<_Tp, _Alloc>::
+        -:  215:    unique()
+        -:  216:    {
+        -:  217:      iterator __first = begin();
+        -:  218:      iterator __last = end();
+        -:  219:      if (__first == __last)
+        -:  220:	return;
+        -:  221:      iterator __next = __first;
+        -:  222:      while (++__next != __last)
+        -:  223:	{
+        -:  224:	  if (*__first == *__next)
+        -:  225:	    _M_erase(__next);
+        -:  226:	  else
+        -:  227:	    __first = __next;
+        -:  228:	  __next = __first;
+        -:  229:	}
+        -:  230:    }
+        -:  231:
+        -:  232:  template<typename _Tp, typename _Alloc>
+        -:  233:    void
+        -:  234:    list<_Tp, _Alloc>::
+        -:  235:#ifdef __GXX_EXPERIMENTAL_CXX0X__
+        -:  236:    merge(list&& __x)
+        -:  237:#else
+        -:  238:    merge(list& __x)
+        -:  239:#endif
+        -:  240:    {
+        -:  241:      // _GLIBCXX_RESOLVE_LIB_DEFECTS
+        -:  242:      // 300. list::merge() specification incomplete
+        -:  243:      if (this != &__x)
+        -:  244:	{
+        -:  245:	  _M_check_equal_allocators(__x); 
+        -:  246:
+        -:  247:	  iterator __first1 = begin();
+        -:  248:	  iterator __last1 = end();
+        -:  249:	  iterator __first2 = __x.begin();
+        -:  250:	  iterator __last2 = __x.end();
+        -:  251:	  while (__first1 != __last1 && __first2 != __last2)
+        -:  252:	    if (*__first2 < *__first1)
+        -:  253:	      {
+        -:  254:		iterator __next = __first2;
+        -:  255:		_M_transfer(__first1, __first2, ++__next);
+        -:  256:		__first2 = __next;
+        -:  257:	      }
+        -:  258:	    else
+        -:  259:	      ++__first1;
+        -:  260:	  if (__first2 != __last2)
+        -:  261:	    _M_transfer(__last1, __first2, __last2);
+        -:  262:	}
+        -:  263:    }
+        -:  264:
+        -:  265:  template<typename _Tp, typename _Alloc>
+        -:  266:    template <typename _StrictWeakOrdering>
+        -:  267:      void
+        -:  268:      list<_Tp, _Alloc>::
+        -:  269:#ifdef __GXX_EXPERIMENTAL_CXX0X__
+        -:  270:      merge(list&& __x, _StrictWeakOrdering __comp)
+        -:  271:#else
+        -:  272:      merge(list& __x, _StrictWeakOrdering __comp)
+        -:  273:#endif
+        -:  274:      {
+        -:  275:	// _GLIBCXX_RESOLVE_LIB_DEFECTS
+        -:  276:	// 300. list::merge() specification incomplete
+        -:  277:	if (this != &__x)
+        -:  278:	  {
+        -:  279:	    _M_check_equal_allocators(__x);
+        -:  280:
+        -:  281:	    iterator __first1 = begin();
+        -:  282:	    iterator __last1 = end();
+        -:  283:	    iterator __first2 = __x.begin();
+        -:  284:	    iterator __last2 = __x.end();
+        -:  285:	    while (__first1 != __last1 && __first2 != __last2)
+        -:  286:	      if (__comp(*__first2, *__first1))
+        -:  287:		{
+        -:  288:		  iterator __next = __first2;
+        -:  289:		  _M_transfer(__first1, __first2, ++__next);
+        -:  290:		  __first2 = __next;
+        -:  291:		}
+        -:  292:	      else
+        -:  293:		++__first1;
+        -:  294:	    if (__first2 != __last2)
+        -:  295:	      _M_transfer(__last1, __first2, __last2);
+        -:  296:	  }
+        -:  297:      }
+        -:  298:
+        -:  299:  template<typename _Tp, typename _Alloc>
+        -:  300:    void
+        -:  301:    list<_Tp, _Alloc>::
+        -:  302:    sort()
+        -:  303:    {
+        -:  304:      // Do nothing if the list has length 0 or 1.
+        -:  305:      if (this->_M_impl._M_node._M_next != &this->_M_impl._M_node
+        -:  306:	  && this->_M_impl._M_node._M_next->_M_next != &this->_M_impl._M_node)
+        -:  307:      {
+        -:  308:        list __carry;
+        -:  309:        list __tmp[64];
+        -:  310:        list * __fill = &__tmp[0];
+        -:  311:        list * __counter;
+        -:  312:
+        -:  313:        do
+        -:  314:	  {
+        -:  315:	    __carry.splice(__carry.begin(), *this, begin());
+        -:  316:
+        -:  317:	    for(__counter = &__tmp[0];
+        -:  318:		__counter != __fill && !__counter->empty();
+        -:  319:		++__counter)
+        -:  320:	      {
+        -:  321:		__counter->merge(__carry);
+        -:  322:		__carry.swap(*__counter);
+        -:  323:	      }
+        -:  324:	    __carry.swap(*__counter);
+        -:  325:	    if (__counter == __fill)
+        -:  326:	      ++__fill;
+        -:  327:	  }
+        -:  328:	while ( !empty() );
+        -:  329:
+        -:  330:        for (__counter = &__tmp[1]; __counter != __fill; ++__counter)
+        -:  331:          __counter->merge(*(__counter - 1));
+        -:  332:        swap( *(__fill - 1) );
+        -:  333:      }
+        -:  334:    }
+        -:  335:
+        -:  336:  template<typename _Tp, typename _Alloc>
+        -:  337:    template <typename _Predicate>
+        -:  338:      void
+        -:  339:      list<_Tp, _Alloc>::
+        -:  340:      remove_if(_Predicate __pred)
+        -:  341:      {
+        -:  342:        iterator __first = begin();
+        -:  343:        iterator __last = end();
+        -:  344:        while (__first != __last)
+        -:  345:	  {
+        -:  346:	    iterator __next = __first;
+        -:  347:	    ++__next;
+        -:  348:	    if (__pred(*__first))
+        -:  349:	      _M_erase(__first);
+        -:  350:	    __first = __next;
+        -:  351:	  }
+        -:  352:      }
+        -:  353:
+        -:  354:  template<typename _Tp, typename _Alloc>
+        -:  355:    template <typename _BinaryPredicate>
+        -:  356:      void
+        -:  357:      list<_Tp, _Alloc>::
+        -:  358:      unique(_BinaryPredicate __binary_pred)
+        -:  359:      {
+        -:  360:        iterator __first = begin();
+        -:  361:        iterator __last = end();
+        -:  362:        if (__first == __last)
+        -:  363:	  return;
+        -:  364:        iterator __next = __first;
+        -:  365:        while (++__next != __last)
+        -:  366:	  {
+        -:  367:	    if (__binary_pred(*__first, *__next))
+        -:  368:	      _M_erase(__next);
+        -:  369:	    else
+        -:  370:	      __first = __next;
+        -:  371:	    __next = __first;
+        -:  372:	  }
+        -:  373:      }
+        -:  374:
+        -:  375:  template<typename _Tp, typename _Alloc>
+        -:  376:    template <typename _StrictWeakOrdering>
+        -:  377:      void
+        -:  378:      list<_Tp, _Alloc>::
+        -:  379:      sort(_StrictWeakOrdering __comp)
+        -:  380:      {
+        -:  381:	// Do nothing if the list has length 0 or 1.
+        -:  382:	if (this->_M_impl._M_node._M_next != &this->_M_impl._M_node
+        -:  383:	    && this->_M_impl._M_node._M_next->_M_next != &this->_M_impl._M_node)
+        -:  384:	  {
+        -:  385:	    list __carry;
+        -:  386:	    list __tmp[64];
+        -:  387:	    list * __fill = &__tmp[0];
+        -:  388:	    list * __counter;
+        -:  389:
+        -:  390:	    do
+        -:  391:	      {
+        -:  392:		__carry.splice(__carry.begin(), *this, begin());
+        -:  393:
+        -:  394:		for(__counter = &__tmp[0];
+        -:  395:		    __counter != __fill && !__counter->empty();
+        -:  396:		    ++__counter)
+        -:  397:		  {
+        -:  398:		    __counter->merge(__carry, __comp);
+        -:  399:		    __carry.swap(*__counter);
+        -:  400:		  }
+        -:  401:		__carry.swap(*__counter);
+        -:  402:		if (__counter == __fill)
+        -:  403:		  ++__fill;
+        -:  404:	      }
+        -:  405:	    while ( !empty() );
+        -:  406:
+        -:  407:	    for (__counter = &__tmp[1]; __counter != __fill; ++__counter)
+        -:  408:	      __counter->merge(*(__counter - 1), __comp);
+        -:  409:	    swap(*(__fill - 1));
+        -:  410:	  }
+        -:  411:      }
+        -:  412:
+        -:  413:_GLIBCXX_END_NESTED_NAMESPACE
+        -:  414:
+        -:  415:#endif /* _LIST_TCC */
+        -:  416:

@@ -1,0 +1,22 @@
+B = numero de ligações entre cidades
+
+funcao: buscaIDS
+O(n): n/2
+
+funcao: verificaCompras
+O(n): n
+
+funcao: djikstra
+O(n): n²
+
+funcao: cria_aresta
+O(n): 1
+
+funcao: selecionaComprasParaEntregadores
+O(n): nlog(n)
+
+funcao: quickSort
+O(n): nlog(n)
+
+funcao: main
+O(n): nCompra/nEntregador + O(n log n) + (nEntregadores * ((n log n) + (n²)) + (B * n²)/2 + n + nEntregadores
