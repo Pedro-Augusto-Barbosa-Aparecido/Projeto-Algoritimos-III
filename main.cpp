@@ -7,6 +7,7 @@ using namespace std;
 struct Compra {
     int id;
     int peso;
+    bool selected;
 
 };
 
@@ -15,6 +16,7 @@ struct Entregadores {
     int *comprasParaEntrega;
     int *caminhoParaEntregas;
     int distanciaDaLoja;
+    int numeroDeCompras;
     
 };
 
@@ -70,7 +72,7 @@ int manageComprasToEntregadores (Compra compras[],
 
             naoPega = pd[i + 1][j];
 
-            if (j >= compras[i].peso)
+            if ((j >= compras[i].peso) && !(compras[i].selected))
                 pega = pd[i + 1][j - compras[i].peso] + compras[i].id;
             else
                 pega = 0;
@@ -98,9 +100,11 @@ int manageComprasToEntregadores (Compra compras[],
             i++;
         else {
             entregador.comprasParaEntrega[posCompraEntregador] = compras[i].id;
+            entregador.numeroDeCompras++;
             ignoreIndex[posIgnore] = compras[i].id;
             posIgnore++;
             posCompraEntregador++;
+            compras[i].selected = true;
             j-= compras[i].peso;
             i++;
 
@@ -145,6 +149,7 @@ int main() {
         cin >> compras[i].id;
         cout << "Entre com o peso da compra: ";
         cin >> compras[i].peso;
+        compras[i].selected = false;
 
     }
 
@@ -156,8 +161,16 @@ int main() {
         // Cria os vetores para compras e caminhos de cada entregador
         entregadores[i].caminhoParaEntregas = new int[10];
         entregadores[i].comprasParaEntrega = new int[10];
+        entregadores[i].numeroDeCompras = 0;
+
+        for (int j = 0; j < 10; j++)
+            entregadores[i].comprasParaEntrega[j] = 0;
+
+        for (int j = 0; j < 10; j++)
+            entregadores[i].caminhoParaEntregas[j] = 0;
 
     }
+
 
     // Inicia Matrix de casas
 //    initMatrix(casas);
@@ -188,7 +201,7 @@ int main() {
     int c = 0;
     for (int i = 0; i < nEntregadores; i++) {
         do {
-            cout << "\nCompra Entregador " << (i + 1) << " " << entregadores[i].comprasParaEntrega[c] << " ";
+            cout << "\nCompra Entregador: " << (i + 1) << " " << entregadores[i].comprasParaEntrega[c] << " ";
             ++c;
         } while (c < 10);
         c = 0;
