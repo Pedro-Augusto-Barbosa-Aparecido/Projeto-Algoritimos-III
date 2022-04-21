@@ -143,7 +143,7 @@ int main() {
 //    cin >> localSaida;
 
     // Pega o ID e Peso de cada compra
-    for (int i = 0; i < (nCompra - 1); i++) {
+    for (int i = 0; i < nCompra; i++) {
         cout << endl;
         cout << "Entre com o numero da compra: ";
         cin >> compras[i].id;
